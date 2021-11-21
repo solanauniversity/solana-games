@@ -1,0 +1,40 @@
+.nftTextWrapper{
+    justify-content: space-between;
+    max-width: 80%;
+    align-items: center;
+    margin-left: 10%;
+    display: flex;
+}
+
+.nftTextWrapper .nftLeftText{
+    min-width: 210px;
+}
+.nftTextWrapper .rightText{
+    min-width: 200px;
+    text-align: left;
+    padding-left: 10px;
+}
+
+.nftImage{
+    width: 100%;
+    height: 400px;
+}
+
+.gameNFT{
+
+}
+.wrapperDiv{
+    display: flex;
+    flex-direction: column;
+    /* justify-content: center; */
+    align-items: center;
+    background: #e6ffcf;
+    height: 100vh;
+    
+}
+
+.score-Wrapper{
+    color: white;
+    margin-top: 100px;
+    position: relative;
+}
