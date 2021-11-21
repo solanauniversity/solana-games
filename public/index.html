@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/logo.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Solgames.fun - Earn while playing"
+    />
+
+    <!-- <link
+      href="https://fonts.googleapis.com/css?family=Rajdhani:300|Roboto:300"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/css?family=Squada+One&display=swap" rel="stylesheet"> -->
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <title>Solgames.fun</title>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-29GVZ1KQ8P"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-29GVZ1KQ8P');
+    </script>
+  </head>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+
+    <script src="/lib/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenMax.min.js"></script>
+    <script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/264161/OrbitControls.js"></script>
+    <script type="text/javascript" src="/lib/physi.js"></script>
+   
+    <!--PRONTO SCRIPTS-->
+    <script id="LightVertexShader" type="x-shader/x-vertex">
+      attribute vec3 vertex;
+
+      uniform mat4 lightProjMat;
+      uniform mat4 lightModelViewMat;
+
+      void main() {
+      	gl_Position = lightProjMat * lightModelViewMat * vec4(vertex, 1.);
+      }
+    </script>
+    <script id="LightFragmentShader" type="x-shader/x-fragment">
+      precision mediump float;
+
+      void main() {
+      	const vec4 bitShift = vec4(16777216., 65536., 256., 1.);
+      	const vec4 bitMask = vec4(0., 1. / 256., 1. / 256., 1. / 256.);
+      	vec4 comp = fract(gl_FragCoord.z * bitShift);
+      	comp -= comp.xxyz * bitMask;
+      	gl_FragColor = comp;
+      }
+    </script>
+    <script id="VertexShader" type="x-shader/x-vertex">
+      attribute vec3 vertex;
+      attribute vec3 normal;
+
+      uniform mat4 projMat;
+      uniform mat4 modelViewMat;
+      uniform mat4 normalMat;
+      uniform mat4 lightModelViewMat;
+      uniform mat4 lightProjMat;
+      uniform vec3 lightDirection;
+
+      varying mediump float intensity;
+      varying mediump float z;
+      varying vec4 shadowPos;
+
+      const mat4 texUnitConverter = mat4(
+      	.5, .0, .0, .0,
+      	.0, .5, .0, .0,
+      	.0, .0, .5, .0,
+      	.5, .5, .5, 1.
+      );
+
+      void main() {
+      	gl_Position = projMat * modelViewMat * vec4(vertex, 1.);
+      	z = gl_Position.z;
+      	intensity = max(0., dot(normalize(mat3(normalMat) * normal),
+      		lightDirection));
+      	shadowPos = texUnitConverter * lightProjMat * lightModelViewMat *
+      		vec4(vertex, 1.);
+      }
+    </script>
+    <script id="FragmentShader" type="x-shader/x-fragment">
+      #ifdef GL_FRAGMENT_PRECISION_HIGH
+      precision highp float;
+      #else
+      precision mediump float;
+      #endif
+
+      uniform float far;
+      uniform vec4 sky;
+      uniform vec4 color;
+      uniform sampler2D shadowDepthTexture;
+
+      varying mediump float intensity;
+      varying mediump float z;
+      varying vec4 shadowPos;
+
+      const vec4 bitShift = vec4(1. / 16777216., 1. / 65536., 1. / 256., 1.);
+      float decodeFloat(vec4 c) {
+      	return dot(c, bitShift);
+      }
+
+      void main() {
+      	float z = shadowPos.z - .007;
+      	float texelSize = 1. / 1024.;
+      	float light = 0.;
+      	for (int x = -1; x <= 1; ++x) {
+      		for (int y = -1; y <= 1; ++y) {
+      			float texelDepth = decodeFloat(texture2D(shadowDepthTexture,
+      					shadowPos.xy + vec2(x, y) * texelSize));
+      			if (z < texelDepth) {
+      				light += 1.;
+      			}
+      		}
+      	}
+      	light /= 9.;
+      	light *= intensity;
+      	float fog = z / far;
+      	gl_FragColor = vec4(
+      		(1. - fog) * color.rgb * (.75 + light * .25) + fog * sky.rgb,
+      		color.a);
+      }
+    </script>
+    <!--END PRONTO SCRIPTS-->
+  </body>
+</html>
