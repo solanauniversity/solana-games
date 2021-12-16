@@ -88,6 +88,12 @@ function App() {
     }
   }
 
+  /**
+   * React will call this useEffect everytime there is update in the provider variable.
+   * Phantom provider provides 2 methods to listen on
+   * 1. connect -> This method gets triggered when the wallet connection is successful
+   * 2. disconnect -> This callback method gets triggered when the wallet gets disconnected from the application
+   */
 
   useEffect(() => {
     if (provider) {
@@ -103,6 +109,11 @@ function App() {
   }, [provider]);
 
 
+  /**
+   * React will call this useEffect only one time after page the loads
+   * We will check if the browser has Phantom wallet installed or not.
+   * If a phantom wallet is installed then it provides a "solana" variable on the window object.
+   */
   useEffect(() => {
     if ("solana" in window && !provider) {
       console.log("Phantom wallet present")

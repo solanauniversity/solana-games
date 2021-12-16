@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useHistory } from 'react-router-dom';
 import LoadingOverlay from 'react-loading-overlay';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import domToImage from 'dom-to-image';
@@ -16,6 +16,8 @@ import './index.css'
 function GenerateNFT() {
   const [playerName, setPlayerName] = useState('');
   const [progress, setProgress] = useState(0);
+
+  const history = useHistory()
 
   let { score, timeSpent } = useParams();
   const [provider, setProvider] = useState(window.solana);
@@ -79,6 +81,8 @@ function GenerateNFT() {
 
       clearInterval(inte);
       setProgress(0);
+      alert("NFT created successfully")
+      history.push('/')
     } catch (e) {
       clearInterval(inte);
       setProgress(0);
