@@ -4,23 +4,25 @@ import stack from './assets/images/stack.png'
 import './App.css';
 import { useHistory } from 'react-router';
 import {
-    clusterApiUrl, Connection, LAMPORTS_PER_SOL, PublicKey,
-  } from "@solana/web3.js";
-  import {
-    Link,
-  } from "react-router-dom";
+  clusterApiUrl, Connection, LAMPORTS_PER_SOL, PublicKey,
+} from "@solana/web3.js";
+import {
+  Link,
+} from "react-router-dom";
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
 import { transferCustomToken } from './utils/transferToken';
 const NETWORK = clusterApiUrl("devnet");
 let lamportsRequiredToPlay = 0.1 * LAMPORTS_PER_SOL
 const gameWalletPublicKey = new PublicKey("62AtDMhgaW1YQZCxv7hGBE7HDTU67L71vs4VQrRVBq3p")
 
 function App() {
-  
+
   const [provider, setProvider] = useState()
   const [providerPubKey, setProviderPub] = useState()
   const [loading, setLoading] = useState(false)
   const history = useHistory()
-  
+
   /**
    * 
    * Connection to the Solana cluster
@@ -28,7 +30,7 @@ function App() {
 
   const connection = new Connection(NETWORK);
 
-  const playStack = async () =>{
+  const playStack = async () => {
     /**
      * Flow to play the game
      * 1. Check if the user is logged in
@@ -41,7 +43,7 @@ function App() {
     /**
      * Check if the user is logged in
      */
-    if(!providerPubKey){
+    if (!providerPubKey) {
       alert("Ooops... Please login via wallet")
       return
     }
@@ -49,21 +51,66 @@ function App() {
     /**
      * Check if the user has SOL in his wallet
      */
-     const accountBalance = await connection.getBalance(providerPubKey)
-     const balanceInLamports = accountBalance ? parseInt(accountBalance):0
-     if(balanceInLamports < lamportsRequiredToPlay){
-      alert("Not enough balance, please fund your wallet")
+    const accountBalance = await connection.getBalance(providerPubKey)
+    const balanceInLamports = accountBalance ? parseInt(accountBalance) : 0
+    if (balanceInLamports < lamportsRequiredToPlay) {
+      // alert("Not enough balance, please fund your wallet")
+      const fundNeededToPlay =
+        lamportsRequiredToPlay - balanceInLamports;
+      const optionsNoBalance = {
+        childrenElement: () => <div />,
+        customUI: ({ onClose }) => (
+          <div className="box">
+            <div className="modal-container" id="m2-o">
+              <div className="modal">
+                {/* <div className="image-holder">
+                    <img src={coins} alt="" />
+                  </div> */}
+                <h1 className="modal__title">
+                  Oops!!! You do not have enough balance
+                </h1>
+                <p className="modal__text">
+                  Please fund your wallet with{' '}
+                  <b>{fundNeededToPlay / LAMPORTS_PER_SOL} SOL</b> tokens to
+                  play the game.
+                </p>
+                <button className="modal__btn no" onClick={onClose}>
+                  No
+                </button>
+                <button
+                  className="modal__btn yes"
+                  onClick={() => {
+                    history.push(`/purchase/stack`);
+                    onClose();
+                  }}
+                >
+                  Fund wallet
+                </button>
+              </div>
+            </div>
+          </div>
+        ),
+        closeOnEscape: true,
+        closeOnClickOutside: true,
+        willUnmount: () => { },
+        afterClose: () => { },
+        onClickOutside: () => { },
+        onKeypressEscape: () => { },
+        overlayClassName: 'overlay-custom-class-name',
+      };
+
+      confirmAlert(optionsNoBalance);
       return
     }
-    
+
     /**
      * If user has required SOL in the wallet, then deduct the amount
      */
     setLoading(true)
-    lamportsRequiredToPlay = lamportsRequiredToPlay/LAMPORTS_PER_SOL
-    const result = await transferCustomToken(provider, connection, lamportsRequiredToPlay,providerPubKey, gameWalletPublicKey)
-    
-    if(!result.status){
+    lamportsRequiredToPlay = lamportsRequiredToPlay / LAMPORTS_PER_SOL
+    const result = await transferCustomToken(provider, connection, lamportsRequiredToPlay, providerPubKey, gameWalletPublicKey)
+
+    if (!result.status) {
       alert("Error in sending the tokens, Please try again!!!")
       return
     }
@@ -72,18 +119,18 @@ function App() {
     /**
      * If the status is true, that means transaction got successful and we can proceed
      */
-     setLoading(false)
+    setLoading(false)
     history.push('/stack')
-        
+
   }
 
-  const loginHandler = () =>{
-    if(!provider && window.solana){
+  const loginHandler = () => {
+    if (!provider && window.solana) {
       setProvider(window.solana)
-    }else if(!provider){
+    } else if (!provider) {
       console.log("No provider found")
       return
-    }else if(provider && !provider.isConnected){
+    } else if (provider && !provider.isConnected) {
       provider.connect()
     }
   }
@@ -97,43 +144,30 @@ function App() {
 
   useEffect(() => {
     if (provider) {
-        provider.on("connect", async() => {
-          console.log("wallet got connected", provider.publicKey)
-          setProviderPub(provider.publicKey)
+      provider.on("connect", async () => {
+        console.log("wallet got connected", provider.publicKey)
+        setProviderPub(provider.publicKey)
 
-        });
-        provider.on("disconnect", () => {
-          console.log("Disconnected from wallet");
-        });
+      });
+      provider.on("disconnect", () => {
+        console.log("Disconnected from wallet");
+      });
     }
   }, [provider]);
 
-
-  /**
-   * React will call this useEffect only one time after page the loads
-   * We will check if the browser has Phantom wallet installed or not.
-   * If a phantom wallet is installed then it provides a "solana" variable on the window object.
-   */
-  useEffect(() => {
-    if ("solana" in window && !provider) {
-      console.log("Phantom wallet present")
-      setProvider(window.solana)
-    }
-  },[])
-
   return (
     <div className="App">
-        <header className="header">
-          <Link to="/"> <h2 className="gameHeader">STACK GAME</h2> </Link>
-          
-          {!providerPubKey && <button className="loginButton" onClick={()=>loginHandler()}> Login</button>}
-          {providerPubKey && <span>{providerPubKey.toBase58()}</span> }
-        </header>
-        <div className="gameThumbnail">
-            <div className="amountNeed">SOL needed to play: 0.1 SOL </div>
-            <img src={stack} alt="Stack Game" />
-            <button className="playButton" onClick={() => playStack()}>{loading ? "Transferring SOL ..." : "Play Stack It"}</button>
-        </div>
+      <header className="header">
+        <Link to="/"> <h2 className="gameHeader">STACK GAME</h2> </Link>
+
+        {!providerPubKey && <button className="loginButton" onClick={() => loginHandler()}> Login</button>}
+        {providerPubKey && <span>{providerPubKey.toBase58()}</span>}
+      </header>
+      <div className="gameThumbnail">
+        <div className="amountNeed">SOL needed to play: 0.1 SOL </div>
+        <img src={stack} alt="Stack Game" />
+        <button className="playButton" onClick={() => playStack()}>{loading ? "Transferring SOL ..." : "Play Stack It"}</button>
+      </div>
     </div>
   );
 }

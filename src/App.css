@@ -74,3 +74,68 @@
   margin-bottom: 30px;
   font-size: 1.2em;
 }
+.react-confirm-alert{
+  height: 300px;
+  width: 600px;
+  border: 1px solid #aaa;
+  padding: 10px;
+  border-radius: 10px;
+  background: #fff;
+  opacity: 1;
+  box-shadow: 2px 2px 2px #aaa;
+  position: relative;
+}
+.modal-container .modal .modal__title{
+  font-size: 1.8em;
+  position: absolute;
+  top: 120px;
+  width: 100%;
+  text-align: center;
+  font-weight: 500;
+}
+
+.modal-container .modal .modal__text{
+  font-size: 1em;
+  text-align: center;
+  position: absolute;
+  top: 180px;
+  width: 100%;
+}
+.no{
+  position: absolute;
+  bottom: 20px;
+  right: 160px;
+  border: 1px solid #3d67ff;
+  padding: 10px 30px;
+  border-radius: 5px;
+  color: #3d67ff;
+  font-weight: bold;
+  /* background: #3d67ff; */
+  box-shadow: 2px 2px 2px #3d67ff;
+}
+.yes{
+  position: absolute;
+  bottom: 20px;
+  right: 30px;
+  border: 1px solid #3d67ff;
+  padding: 10px;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+  background: #3d67ff;
+  box-shadow: 2px 2px 2px #3d67ff;
+}
+
+
+
+._loading_overlay_content{
+  width: 300px;
+}
+.image-holder{
+  text-align: center;
+  margin-top: 50px;
+
+}
+.image-holder img{
+  display: inline;
+}
